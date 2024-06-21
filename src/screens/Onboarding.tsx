@@ -17,7 +17,9 @@ const Onboarding = () => {
   const navigation = useNavigation<OnboardingScreenNavigationProp>();
 
   const handleContinue = () => {
-    navigation.navigate('TodoScreen');
+    navigation.navigate('Main', {
+      screen: 'Todo',
+    });
   };
 
   return (
