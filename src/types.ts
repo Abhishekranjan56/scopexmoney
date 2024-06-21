@@ -2,5 +2,7 @@ export type RootStackParamList = {
   Onboarding: undefined;
   Home: undefined;
   Todo: undefined;
-  Main: undefined;
+  Main: {
+    screen: 'Todo' | 'OtherScreen';
+  };
 };

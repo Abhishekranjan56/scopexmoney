@@ -1,18 +1,72 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Image, ActivityIndicator, Button } from 'react-native';
 
 const ProfileScreen = () => {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [profileData, setProfileData] = useState<{ name: string, email: string, imageUrl: string } | null>(null);
+
+  useEffect(() => {
+    fetchProfileData();
+  }, []);
+
+  const fetchProfileData = async () => {
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      setProfileData({
+        name: 'John Doe',
+        email: 'john.doe@example.com',
+        imageUrl: 'https://example.com/your-profile-image.jpg',
+      });
+      setLoading(false);
+    } catch (err) {
+      setError('Failed to load profile data. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+        <Button title="Retry" onPress={fetchProfileData} />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <Image source={{ uri: 'https://example.com/your-profile-image.jpg' }} style={styles.profileImage} />
-      <Text style={styles.name}>John Doe</Text>
-      <Text style={styles.email}>john.doe@example.com</Text>
+      {profileData && (
+        <>
+          <Image source={{ uri: profileData.imageUrl }} style={styles.profileImage} />
+          <Text style={styles.name}>{profileData.name}</Text>
+          <Text style={styles.email}>{profileData.email}</Text>
+        </>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -30,6 +84,10 @@ const styles = StyleSheet.create({
   email: {
     fontSize: 18,
     color: 'gray',
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 10,
   },
 });
 

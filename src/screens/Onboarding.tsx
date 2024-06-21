@@ -1,6 +1,5 @@
-// src/screens/Onboarding.tsx
-import React from 'react';
-import { View, Text, StyleSheet, Dimensions, Button } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Dimensions, Button, ActivityIndicator } from 'react-native';
 import Swiper from 'react-native-swiper';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -14,12 +13,23 @@ type OnboardingScreenNavigationProp = StackNavigationProp<
 const { width, height } = Dimensions.get('window');
 
 const Onboarding = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigation = useNavigation<OnboardingScreenNavigationProp>();
 
-  const handleContinue = () => {
-    navigation.navigate('Main', {
-      screen: 'Todo',
-    });
+  const handleContinue = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      navigation.navigate('Main', {
+        screen: 'Todo',
+      });
+    } catch (err) {
+      setError('An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -32,7 +42,12 @@ const Onboarding = () => {
       </View>
       <View style={styles.slide}>
         <Text style={styles.text}>Screen 3</Text>
-        <Button title="Continue" onPress={handleContinue} />
+        {loading ? (
+          <ActivityIndicator size="large" color="#0000ff" />
+        ) : (
+          <Button title="Continue" onPress={handleContinue} />
+        )}
+        {error && <Text style={styles.errorText}>{error}</Text>}
       </View>
     </Swiper>
   );
@@ -66,6 +81,10 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     margin: 3,
+  },
+  errorText: {
+    color: 'red',
+    marginTop: 10,
   },
 });
 

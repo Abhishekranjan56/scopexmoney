@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, ActivityIndicator, StyleSheet, Alert, TextInput, Text, TouchableOpacity, ToastAndroid } from 'react-native';
+import { View, FlatList, ActivityIndicator, StyleSheet, TextInput, Text, TouchableOpacity, ToastAndroid } from 'react-native';
 import Icon from 'react-native-vector-icons/AntDesign';
 import Modal from 'react-native-modal';
 import TodoCard from '../components/TodoCard';
@@ -10,6 +10,7 @@ type TodoItem = string;
 const TodoScreen = () => {
   const [items, setItems] = useState<TodoItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newTodo, setNewTodo] = useState('');
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -33,6 +34,7 @@ const TodoScreen = () => {
 
   const toggleModal = () => {
     setIsModalVisible(!isModalVisible);
+    setError(null);
   };
 
   const showToast = (message: string) => {
@@ -45,29 +47,43 @@ const TodoScreen = () => {
     );
   };
 
-  const addOrUpdateTodo = () => {
+  const addOrUpdateTodo = async () => {
     if (newTodo.trim().length === 0) {
-      Alert.alert('Error', 'Please enter a valid todo item.');
+      setError('Please enter a valid todo item.');
       return;
     }
-    if (editingIndex !== null) {
-      const updatedItems = items.map((item, index) =>
-        index === editingIndex ? newTodo : item
-      );
-      setItems(updatedItems);
-      showToast('Todo updated');
-      setEditingIndex(null);
-    } else {
-      setItems([...items, newTodo]);
-      showToast('Todo added');
+    setLoading(true);
+    try {
+      if (editingIndex !== null) {
+        const updatedItems = items.map((item, index) =>
+          index === editingIndex ? newTodo : item
+        );
+        setItems(updatedItems);
+        showToast('Todo updated');
+        setEditingIndex(null);
+      } else {
+        setItems([...items, newTodo]);
+        showToast('Todo added');
+      }
+      setNewTodo('');
+      toggleModal();
+    } catch (err) {
+      setError('An error occurred while saving the todo.');
+    } finally {
+      setLoading(false);
     }
-    setNewTodo('');
-    toggleModal();
   };
 
-  const deleteTodo = (index: number) => {
-    setItems(items.filter((_, i) => i !== index));
-    showToast('Todo deleted');
+  const deleteTodo = async (index: number) => {
+    setLoading(true);
+    try {
+      setItems(items.filter((_, i) => i !== index));
+      showToast('Todo deleted');
+    } catch (err) {
+      setError('An error occurred while deleting the todo.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const editTodo = (index: number) => {
@@ -105,6 +121,7 @@ const TodoScreen = () => {
             value={newTodo}
             onChangeText={setNewTodo}
           />
+          {error && <Text style={styles.errorText}>{error}</Text>}
           <View style={styles.modalButtons}>
             <TouchableOpacity style={[styles.button, { backgroundColor: '#ff5c5c' }]} onPress={toggleModal}>
               <Text style={styles.buttonText}>Cancel</Text>
@@ -143,6 +160,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 5,
     padding: 10,
+    marginBottom: 10,
+  },
+  errorText: {
+    color: 'red',
     marginBottom: 10,
   },
   modalButtons: {

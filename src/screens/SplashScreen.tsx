@@ -1,16 +1,55 @@
-// SplashScreen.tsx
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Image, ActivityIndicator, Button } from 'react-native';
 import RNBootSplash from 'react-native-bootsplash';
 
 const SplashScreen = () => {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     const timer = setTimeout(() => {
-      RNBootSplash.hide();
-    }, 2000); 
+      try {
+        RNBootSplash.hide();
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to hide splash screen. Please try again.');
+        setLoading(false);
+      }
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, []);
+
+  const retry = () => {
+    setLoading(true);
+    setError(null);
+    setTimeout(() => {
+      try {
+        RNBootSplash.hide();
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to hide splash screen. Please try again.');
+        setLoading(false);
+      }
+    }, 2000);
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+        <Button title="Retry" onPress={retry} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -25,17 +64,31 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff', // Adjust the background color as needed
+    backgroundColor: '#fff',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   logo: {
     width: 100,
-    height: 100, // Adjust the size as needed
+    height: 100,
     marginBottom: 20,
   },
   text: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#000', // Adjust the text color as needed
+    color: '#000',
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 10,
   },
 });
 
