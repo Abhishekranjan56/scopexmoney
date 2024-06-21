@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, ActivityIndicator, StyleSheet, Alert, TextInput, Button, Text } from 'react-native';
+import { View, FlatList, ActivityIndicator, StyleSheet, Alert, TextInput, Text, TouchableOpacity, ToastAndroid } from 'react-native';
 import Icon from 'react-native-vector-icons/AntDesign';
 import Modal from 'react-native-modal';
 import TodoCard from '../components/TodoCard';
@@ -12,6 +12,7 @@ const TodoScreen = () => {
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newTodo, setNewTodo] = useState('');
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const navigation = useNavigation();
 
@@ -34,17 +35,50 @@ const TodoScreen = () => {
     setIsModalVisible(!isModalVisible);
   };
 
-  const addTodo = () => {
+  const showToast = (message: string) => {
+    ToastAndroid.showWithGravityAndOffset(
+      message,
+      ToastAndroid.SHORT,
+      ToastAndroid.BOTTOM,
+      0,
+      100
+    );
+  };
+
+  const addOrUpdateTodo = () => {
     if (newTodo.trim().length === 0) {
       Alert.alert('Error', 'Please enter a valid todo item.');
       return;
     }
-    setItems([...items, newTodo]);
+    if (editingIndex !== null) {
+      const updatedItems = items.map((item, index) =>
+        index === editingIndex ? newTodo : item
+      );
+      setItems(updatedItems);
+      showToast('Todo updated');
+      setEditingIndex(null);
+    } else {
+      setItems([...items, newTodo]);
+      showToast('Todo added');
+    }
     setNewTodo('');
     toggleModal();
   };
 
-  const renderItem = ({ item }: { item: TodoItem }) => <TodoCard todo={item} />;
+  const deleteTodo = (index: number) => {
+    setItems(items.filter((_, i) => i !== index));
+    showToast('Todo deleted');
+  };
+
+  const editTodo = (index: number) => {
+    setNewTodo(items[index]);
+    setEditingIndex(index);
+    toggleModal();
+  };
+
+  const renderItem = ({ item, index }: { item: TodoItem; index: number }) => (
+    <TodoCard todo={item} onDelete={() => deleteTodo(index)} onEdit={() => editTodo(index)} />
+  );
 
   const renderFooter = () => {
     if (!loading) return null;
@@ -64,7 +98,7 @@ const TodoScreen = () => {
       />
       <Modal isVisible={isModalVisible}>
         <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Add New Todo</Text>
+          <Text style={styles.modalTitle}>{editingIndex !== null ? 'Edit Todo' : 'Add New Todo'}</Text>
           <TextInput
             style={styles.input}
             placeholder="Enter new todo"
@@ -72,8 +106,12 @@ const TodoScreen = () => {
             onChangeText={setNewTodo}
           />
           <View style={styles.modalButtons}>
-            <Button title="Cancel" onPress={toggleModal} color="#ff5c5c" />
-            <Button title="Save" onPress={addTodo} />
+            <TouchableOpacity style={[styles.button, { backgroundColor: '#ff5c5c' }]} onPress={toggleModal}>
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.button, { backgroundColor: '#007aff' }]} onPress={addOrUpdateTodo}>
+              <Text style={styles.buttonText}>{editingIndex !== null ? 'Update' : 'Save'}</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -111,6 +149,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
+  },
+  button: {
+    flex: 1,
+    padding: 10,
+    marginHorizontal: 5,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
   },
 });
 

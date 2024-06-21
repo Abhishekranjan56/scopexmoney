@@ -1,21 +1,25 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/AntDesign';
-import MaterialIcons from 'react-native-vector-icons/MaterialCommunityIcons'
-
+import MaterialIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import IonIcons from 'react-native-vector-icons/Ionicons';
 
 type TodoCardProps = {
   todo: string;
   onDelete: () => void;
+  onEdit: () => void;
 };
 
-const TodoCard: React.FC<TodoCardProps> = ({ todo, onDelete }) => {
+const TodoCard: React.FC<TodoCardProps> = ({ todo, onDelete, onEdit }) => {
   return (
     <View style={styles.card}>
       <Text style={styles.todoText}>{todo}</Text>
       <View style={styles.icons}>
+        <TouchableOpacity onPress={onEdit}>
+          <MaterialIcons name="pencil-outline" size={24} color="blue" style={styles.icon} />
+        </TouchableOpacity>
         <TouchableOpacity onPress={onDelete}>
-          <MaterialIcons name="delete-outline" size={24} color="red" style={styles.icon} />
+          <IonIcons name="trash-bin-outline" size={24} color="red" style={styles.icon} />
         </TouchableOpacity>
         <Icon name="check" size={24} color="green" />
       </View>
@@ -28,7 +32,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    width: Dimensions.get('window').width - 32, 
+    width: Dimensions.get('window').width - 32,
     padding: 15,
     marginVertical: 8,
     marginHorizontal: 16,
